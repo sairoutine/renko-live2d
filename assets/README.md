@@ -1,0 +1,2 @@
+# Live2D_DeskTopMascot
+ここにLive2D Modelファイルとテクスチャ、モーションファイルを配置する
