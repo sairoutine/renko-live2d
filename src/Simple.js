@@ -1,7 +1,8 @@
 /* global Live2D, Live2DModelWebGL, Live2DMotion, L2DMotionManager, L2DPose, Live2DFramework, PlatformManager */
 'use strict';
 // Canvasサイズ
-var CAN_SIZE = 512;
+var HEIGHT = 512;
+var WIDTH  = 512;
 // Live2Dモデル定義
 var MODEL_PATH = "assets/haru/";
 var IMAGE_PATH = "assets/haru/";
@@ -61,7 +62,8 @@ var Simple = function() {
 
 	// canvasオブジェクトを取得
 	self.canvas = document.getElementById("glcanvas");
-	self.canvas.width = self.canvas.height = CAN_SIZE;
+	self.canvas.width = WIDTH;
+	self.canvas.height = HEIGHT;
 
 	// コンテキストを失ったとき
 	self.canvas.addEventListener("webglcontextlost", function(e) {

@@ -10,13 +10,19 @@ let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
-
+  mainWindow = new BrowserWindow({
+	  width: 512, 
+	  height: 512,
+	  "transparent": true,    // ウィンドウの背景を透過
+	  "frame": false,     // 枠の無いウィンドウ
+	  "resizable": false,  // ウィンドウのリサイズを禁止
+	  alwaysOnTop: true,
+  })
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`)
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  //mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
