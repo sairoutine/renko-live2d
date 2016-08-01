@@ -11,8 +11,8 @@ let mainWindow
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-	  width: 512, 
-	  height: 512,
+	  width: 532, 
+	  height: 532,
 	  "transparent": true,    // ウィンドウの背景を透過
 	  "frame": false,     // 枠の無いウィンドウ
 	  "resizable": false,  // ウィンドウのリサイズを禁止
