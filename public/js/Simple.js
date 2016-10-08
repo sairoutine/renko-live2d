@@ -92,11 +92,23 @@ Simple.prototype.startLoop = function() {
 	// PlatformManager を設定
 	Live2DFramework.setPlatformManager(new PlatformManager());
 
+	// モーションマネジャーのインスタンス化
+	self.motionMgr = new L2DMotionManager();
+
 	//------------ Live2Dの初期化 ------------
+
 	// mocファイルからLive2Dモデルのインスタンスを生成
 	Simple.loadBytes(MODEL_DEFINE.model, function(buf){
 		self.live2DModel = Live2DModelWebGL.loadModel(buf);
 	});
+
+	// ポーズのロード(json内のposeがあるかチェック)
+	if(MODEL_DEFINE.pose){
+		Simple.loadBytes(MODEL_DEFINE.pose, function(buf){
+			// ポースクラスのロード
+			self.pose = L2DPose.load(buf);
+		});
+	}
 
 	// テクスチャの読み込み
 	var loadCount = 0;
@@ -112,7 +124,6 @@ Simple.prototype.startLoop = function() {
 			console.error("Failed to load image : " + MODEL_DEFINE.textures[tno]);
 		};
 	};
-
 
 	for(var i = 0; i < MODEL_DEFINE.textures.length; i++){
 		imageLoader(i);
@@ -135,30 +146,8 @@ Simple.prototype.startLoop = function() {
 		motionLoader(i);
 	}
 
-	// モーションマネジャーのインスタンス化
-	self.motionMgr = new L2DMotionManager();
-
-	// ポーズのロード(json内のposeがあるかチェック)
-	if(MODEL_DEFINE.pose){
-		Simple.loadBytes(MODEL_DEFINE.pose, function(buf){
-			// ポースクラスのロード
-			self.pose = L2DPose.load(buf);
-		});
-	}
-
-
-	// コンテキストを失ったとき
-	self.canvas.addEventListener("webglcontextlost", function(e) {
-		console.error("context lost");
-		self.stopLoop();
-		e.preventDefault();
-	}, false);
-
-	// コンテキストが復元されたとき
-	self.canvas.addEventListener("webglcontextrestored" , function(e){
-		console.error("webglcontext restored");
-		self.startLoop();
-	}, false);
+	// コンテキストの消失／復元管理
+	self.setContextRecover();
 
 	// マウスクリックイベント
 	self.canvas.addEventListener("click", function(e){
@@ -172,6 +161,23 @@ Simple.prototype.startLoop = function() {
 
 	//------------ 描画ループ ------------
 	self.tick();
+};
+
+// コンテキストの消失／復元管理
+Simple.prototype.setContextRecover = function() {
+	var self = this;
+	// コンテキストを失ったとき
+	self.canvas.addEventListener("webglcontextlost", function(e) {
+		console.error("context lost");
+		self.stopLoop();
+		e.preventDefault();
+	}, false);
+
+	// コンテキストが復元されたとき
+	self.canvas.addEventListener("webglcontextrestored" , function(e){
+		console.error("webglcontext restored");
+		self.startLoop();
+	}, false);
 };
 
 //------------ 描画ループ ------------
@@ -195,8 +201,10 @@ Simple.prototype.stopLoop = function() {
 
 
 
-Simple.prototype.draw = function(gl/*WebGLコンテキスト*/, that)
-{
+Simple.prototype.draw = function() {
+	var that = this;
+	var gl = that.gl;
+
 	// Canvasをクリアする
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
