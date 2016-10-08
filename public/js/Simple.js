@@ -14,6 +14,7 @@ var MODEL_DEFINE = {
 		IMAGE_PATH + "model.2048/texture_00.png",
 	],
 	"motions":[
+		MODEL_PATH + "motions/idle_01.mtn",
 		MODEL_PATH + "motions/haru_idle_01.mtn",
 		MODEL_PATH + "motions/haru_m_01.mtn",
 		MODEL_PATH + "motions/haru_normal_01.mtn",
@@ -230,12 +231,16 @@ Simple.prototype.draw = function(gl/*WebGLコンテキスト*/, that)
 		that.live2DModel.setGL(gl);
 
 		// 表示位置を指定するための行列を定義する
-		var s = 2.0 / that.live2DModel.getCanvasWidth(); //canvasの横幅を-1..1区間に収める
+		var w = that.live2DModel.getCanvasWidth();
+		var h = that.live2DModel.getCanvasHeight();
+		var s = 2.0 / h;
+		var p = w / h;
+
 		var matrix4x4 = [
 		 s, 0, 0, 0,
 		 0,-s, 0, 0,
 		 0, 0, 1, 0,
-		-1, 1, 0, 1
+		-1, 1, 0, 1 // 左から「x位置, y位置, 0, スケール」
 		];
 		that.live2DModel.setMatrix(matrix4x4);
 	}
