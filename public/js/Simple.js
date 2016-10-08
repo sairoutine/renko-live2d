@@ -66,31 +66,36 @@ var Simple = function(canvas) {
 	// コンテキストを失ったとき
 	self.canvas.addEventListener("webglcontextlost", function(e) {
 		console.error("context lost");
-		self.loadLive2DCompleted = false;
-		self.loadLive2DCompleted2 = false;
-		self.initLive2DCompleted = false;
-
-		window.cancelAnimationFrame(self.requestID); //アニメーションを停止
-
+		self.stopLoop();
 		e.preventDefault();
 	}, false);
 
 	// コンテキストが復元されたとき
 	self.canvas.addEventListener("webglcontextrestored" , function(e){
 		console.error("webglcontext restored");
-		self.initLoop(self.canvas);
+		self.startLoop(self.canvas);
 	}, false);
 
 	// Init and start Loop
-	self.initLoop(self.canvas);
+	self.startLoop(self.canvas);
 };
+
+Simple.prototype.stopLoop = function() {
+	var self = this;
+	self.loadLive2DCompleted = false;
+	self.loadLive2DCompleted2 = false;
+	self.initLive2DCompleted = false;
+
+	window.cancelAnimationFrame(self.requestID); //アニメーションを停止
+};
+
 
 
 /*
 * WebGLコンテキストを取得・初期化。
 * Live2Dの初期化、描画ループを開始。
 */
-Simple.prototype.initLoop = function(canvas/*HTML5 canvasオブジェクト*/)
+Simple.prototype.startLoop = function(canvas/*HTML5 canvasオブジェクト*/)
 {
 	//------------ WebGLの初期化 ------------
 
