@@ -184,7 +184,7 @@ Simple.prototype.setContextRecover = function() {
 Simple.prototype.tick = function() {
 	var self = this;
 
-	self.draw(self.gl, self); // 1回分描画
+	self.draw(); // 1回分描画
 
 	self.requestID = window.requestAnimationFrame(self.tick.bind(self));// 一定時間後に自身を呼び出す
 };
@@ -202,35 +202,34 @@ Simple.prototype.stopLoop = function() {
 
 
 Simple.prototype.draw = function() {
-	var that = this;
-	var gl = that.gl;
+	var self = this;
 
 	// Canvasをクリアする
-	gl.clear(gl.COLOR_BUFFER_BIT);
+	self.gl.clear(self.gl.COLOR_BUFFER_BIT);
 
 	// Live2D初期化
-	if( ! that.live2DModel || ! that.loadLive2DModelCompleted || ! that.loadLive2DMotionCompleted)
+	if( ! self.live2DModel || ! self.loadLive2DModelCompleted || ! self.loadLive2DMotionCompleted)
 		return; //ロードが完了していないので何もしないで返る
 
 	// ロード完了後に初回のみ初期化する
-	if( ! that.initLive2DCompleted ){
-		that.initLive2DCompleted = true;
+	if( ! self.initLive2DCompleted ){
+		self.initLive2DCompleted = true;
 
 		// 画像からWebGLテクスチャを生成し、モデルに登録
-		for( var i = 0; i < that.loadedImages.length; i++ ){
+		for( var i = 0; i < self.loadedImages.length; i++ ){
 			//Image型オブジェクトからテクスチャを生成
-			var texName = that.createTexture(gl, that.loadedImages[i]);
-			that.live2DModel.setTexture(i, texName); //モデルにテクスチャをセット
+			var texName = self.createTexture(self.gl, self.loadedImages[i]);
+			self.live2DModel.setTexture(i, texName); //モデルにテクスチャをセット
 		}
 
 		// テクスチャの元画像の参照をクリア
-		that.loadedImages = null;
+		self.loadedImages = null;
 		// OpenGLのコンテキストをセット
-		that.live2DModel.setGL(gl);
+		self.live2DModel.setGL(self.gl);
 
 		// 表示位置を指定するための行列を定義する
-		var w = that.live2DModel.getCanvasWidth();
-		var h = that.live2DModel.getCanvasHeight();
+		var w = self.live2DModel.getCanvasWidth();
+		var h = self.live2DModel.getCanvasHeight();
 		var s = 2.0 / h;
 		var p = w / h;
 
@@ -240,44 +239,36 @@ Simple.prototype.draw = function() {
 		 0, 0, 1, 0,
 		-1, 1, 0, 1 // 左から「x位置, y位置, 0, スケール」
 		];
-		that.live2DModel.setMatrix(matrix4x4);
+		self.live2DModel.setMatrix(matrix4x4);
 	}
 
 
 	// モーションが終了していたら再生する
-	if(that.motionMgr.isFinished() || that.motionchange === true ){
-		that.motionMgr.startMotion(that.motions[that.motionnm], 0);
-		that.motionchange = false;
-		console.info("motion:" + that.motionnm);
+	if(self.motionMgr.isFinished() || self.motionchange === true ){
+		self.motionMgr.startMotion(self.motions[self.motionnm], 0);
+		self.motionchange = false;
+		console.info("motion:" + self.motionnm);
 	}
 	// モーション指定されていない場合は何も再生しない
-	if(that.motionnm !== null){
+	if(self.motionnm !== null){
 		// モーションパラメータの更新
-		that.motionMgr.updateParam(that.live2DModel);
+		self.motionMgr.updateParam(self.live2DModel);
 	}
 
 	// ポーズパラメータの更新
-	if(that.pose !== null) {
-		that.pose.updateParam(that.live2DModel);
+	if(self.pose !== null) {
+		self.pose.updateParam(self.live2DModel);
 	}
 
-
-	// // キャラクターのパラメータを適当に更新
-	//    var t = UtSystem.getTimeMSec() * 0.001 * 2 * Math.PI; //1秒ごとに2π(1周期)増える
-	//    var cycle = 3.0; //パラメータが一周する時間(秒)
-	//    // PARAM_ANGLE_Xのパラメータが[cycle]秒ごとに-30から30まで変化する
-	//    live2DModel.setParamFloat("PARAM_ANGLE_X", 30 * Math.sin(t/cycle));
-
 	// Live2Dモデルを更新して描画
-	that.live2DModel.update(); // 現在のパラメータに合わせて頂点等を計算
-	that.live2DModel.draw();	// 描画
+	self.live2DModel.update(); // 現在のパラメータに合わせて頂点等を計算
+	self.live2DModel.draw();	// 描画
 };
 
 /*
 * Image型オブジェクトからテクスチャを生成
 */
-Simple.prototype.createTexture = function(gl/*WebGLコンテキスト*/, image/*WebGL Image*/)
-{
+Simple.prototype.createTexture = function(gl/*WebGLコンテキスト*/, image/*WebGL Image*/) {
 	var texture = gl.createTexture(); //テクスチャオブジェクトを作成する
 	if ( !texture ){
 		console.error("Failed to generate gl texture name.");
