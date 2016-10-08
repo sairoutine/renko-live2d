@@ -2,24 +2,23 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<!-- タイトルなし -->
 <title></title>
-</meta>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=4.0">
-</meta>
 <style>
 canvas{
-	-webkit-app-region: drag;  /* ドラッグ移動用 */
+	-webkit-app-region: drag;  /* electron ドラッグ移動用 */
 	margin:0; padding:0;
 }
 </style>
 </head>
 <body>
+
 <canvas id="glcanvas" style="position:absolute;left0px;top0px;"></canvas>
+
 <!-- Live2D Library -->
 <script src="http://simplecode.jp/Live2D_DragDrop/lib/live2d.min.js"></script>
 <script src="http://simplecode.jp/Live2D_DragDrop/framework/Live2DFramework.js"></script>
-<script src="PlatFormManager.js"></script>
+<script src="src/PlatFormManager.js"></script>
 <!-- User's Script -->
 <script src="src/Simple.js"></script>
 </body>
