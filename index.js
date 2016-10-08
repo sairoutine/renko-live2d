@@ -13,6 +13,7 @@ function createWindow () {
 	  "transparent": true,    // ウィンドウの背景を透過
 	  "frame": false,     // 枠の無いウィンドウ
 	  "resizable": false,  // ウィンドウのリサイズを禁止
+	  "hasShadow": false,
 	  alwaysOnTop: true,
 	});
 	mainWindow.loadURL(`file://${__dirname}/index.html`);
