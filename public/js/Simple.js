@@ -79,7 +79,7 @@ Simple.prototype.startLoop = function() {
 	//------------ WebGLの初期化 ------------
 
 	// WebGLのコンテキストを取得する
-	self.gl = self.getWebGLContext();
+	self.gl = Simple.getWebGLContext(self.canvas);
 
 	if (!self.gl) {
 		console.error("Failed to create WebGL context.");
@@ -273,30 +273,6 @@ Simple.prototype.draw = function() {
 	that.live2DModel.draw();	// 描画
 };
 
-
-/*
-* WebGLのコンテキストを取得する
-*/
-Simple.prototype.getWebGLContext = function() {
-	var self = this;
-	var NAMES = [ "webgl" , "experimental-webgl" , "webkit-3d" , "moz-webgl"];
-
-	var param = {
-		alpha : true,
-		premultipliedAlpha : true
-	};
-
-	for( var i = 0; i < NAMES.length; i++ ){
-		try{
-			var ctx = self.canvas.getContext( NAMES[i], param );
-			if( ctx ) return ctx;
-		}
-		catch(e){}
-	}
-	return null;
-};
-
-
 /*
 * Image型オブジェクトからテクスチャを生成
 */
@@ -323,6 +299,29 @@ Simple.prototype.createTexture = function(gl/*WebGLコンテキスト*/, image/*
 
 	return texture;
 };
+
+/*
+* WebGLのコンテキストを取得する
+*/
+Simple.getWebGLContext = function(canvas) {
+	var self = this;
+	var NAMES = [ "webgl" , "experimental-webgl" , "webkit-3d" , "moz-webgl"];
+
+	var param = {
+		alpha : true,
+		premultipliedAlpha : true
+	};
+
+	for( var i = 0; i < NAMES.length; i++ ){
+		try{
+			var ctx = canvas.getContext( NAMES[i], param );
+			if( ctx ) return ctx;
+		}
+		catch(e){}
+	}
+	return null;
+};
+
 
 
 /*
