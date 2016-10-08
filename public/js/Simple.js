@@ -44,9 +44,9 @@ var Simple = function(canvas/*HTML5 canvasオブジェクト*/) {
 	// アニメーションを停止するためのID
 	self.requestID = null;
 	// モデルのロードが完了したら true
-	self.loadLive2DCompleted = false;
+	self.loadLive2DModelCompleted = false;
 	// モーションのロードが完了したら true
-	self.loadLive2DCompleted2 = false;
+	self.loadLive2DMotionCompleted = false;
 	// モデルの初期化が完了したら true
 	self.initLive2DCompleted = false;
 	// WebGL Image型オブジェクトの配列
@@ -117,7 +117,7 @@ Simple.prototype.startLoop = function() {
 		self.loadedImages[tno].src = MODEL_DEFINE.textures[tno];
 		self.loadedImages[tno].onload = function(){
 			if((++loadCount) === MODEL_DEFINE.textures.length) {
-				self.loadLive2DCompleted = true;//全て読み終わった
+				self.loadLive2DModelCompleted = true;//全て読み終わった
 			}
 		};
 		self.loadedImages[tno].onerror = function() {
@@ -136,7 +136,7 @@ Simple.prototype.startLoop = function() {
 
 			self.motions.push(Live2DMotion.loadMotion(buf));
 			if((++loadCount2) === MODEL_DEFINE.motions.length) {
-				self.loadLive2DCompleted2 = true;//全て読み終わった
+				self.loadLive2DMotionCompleted = true;//全て読み終わった
 			}
 
 		});
@@ -191,8 +191,8 @@ Simple.prototype.tick = function() {
 
 Simple.prototype.stopLoop = function() {
 	var self = this;
-	self.loadLive2DCompleted = false;
-	self.loadLive2DCompleted2 = false;
+	self.loadLive2DModelCompleted = false;
+	self.loadLive2DMotionCompleted = false;
 	self.initLive2DCompleted = false;
 
 	window.cancelAnimationFrame(self.requestID); //アニメーションを停止
@@ -209,7 +209,7 @@ Simple.prototype.draw = function() {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
 	// Live2D初期化
-	if( ! that.live2DModel || ! that.loadLive2DCompleted || ! that.loadLive2DCompleted2)
+	if( ! that.live2DModel || ! that.loadLive2DModelCompleted || ! that.loadLive2DMotionCompleted)
 		return; //ロードが完了していないので何もしないで返る
 
 	// ロード完了後に初回のみ初期化する
