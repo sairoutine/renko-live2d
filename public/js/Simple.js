@@ -65,6 +65,9 @@ var Simple = function(canvas) {
 	self.pose = null;
 	// canvasオブジェクトを取得
 	self.canvas = canvas;
+	// WebGL Context
+	self.gl = null;
+
 };
 
 /*
@@ -78,20 +81,18 @@ Simple.prototype.startLoop = function() {
 	//------------ WebGLの初期化 ------------
 
 	// WebGLのコンテキストを取得する
-	var para = {
+	self.gl = this.getWebGLContext(self.canvas, {
 		premultipliedAlpha : true,
-	//        alpha : false
-	};
-	var gl = this.getWebGLContext(self.canvas, para);
-	if (!gl) {
+		//alpha : false
+	});
+
+	if (!self.gl) {
 		console.error("Failed to create WebGL context.");
 		return;
 	}
 
 	// 描画エリアを白でクリア
-	gl.clearColor( 0.0 , 0.0 , 0.0 , 0.0 );
-
-	self.gl = gl;
+	self.gl.clearColor( 0.0 , 0.0 , 0.0 , 0.0 );
 
 	var motionbuf, arrayBuf;
 
