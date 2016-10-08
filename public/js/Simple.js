@@ -28,6 +28,9 @@ window.onload = function(){
 	Live2D.init();
 
 	var glCanvas = new Simple(canvas);
+
+	// Init and start Loop
+	glCanvas.startLoop();
 };
 
 /*
@@ -62,6 +65,98 @@ var Simple = function(canvas) {
 	self.pose = null;
 	// canvasオブジェクトを取得
 	self.canvas = canvas;
+};
+
+/*
+* WebGLコンテキストを取得・初期化。
+* Live2Dの初期化、描画ループを開始。
+*/
+Simple.prototype.startLoop = function() {
+	// コールバック対策
+	var self = this;
+
+	//------------ WebGLの初期化 ------------
+
+	// WebGLのコンテキストを取得する
+	var para = {
+		premultipliedAlpha : true,
+	//        alpha : false
+	};
+	var gl = this.getWebGLContext(self.canvas, para);
+	if (!gl) {
+		console.error("Failed to create WebGL context.");
+		return;
+	}
+
+	// 描画エリアを白でクリア
+	gl.clearColor( 0.0 , 0.0 , 0.0 , 0.0 );
+
+	self.gl = gl;
+
+	var motionbuf, arrayBuf;
+
+	// PlatformManager を設定
+	Live2DFramework.setPlatformManager(new PlatformManager());
+
+	//------------ Live2Dの初期化 ------------
+	// mocファイルからLive2Dモデルのインスタンスを生成
+	Simple.loadBytes(self.modelDef.model, function(buf){
+		// ArrayBufferに変換
+		//var arrayBuf = this.toArrayBuffer(mocbuf);
+
+		self.live2DModel = Live2DModelWebGL.loadModel(buf);
+	});
+
+	// テクスチャの読み込み
+	var loadCount = 0;
+	var imageLoader = function ( tno ){// 即時関数で i の値を tno に固定する（onerror用)
+		self.loadedImages[tno] = new Image();
+		self.loadedImages[tno].src = self.modelDef.textures[tno];
+		self.loadedImages[tno].onload = function(){
+			if((++loadCount) === self.modelDef.textures.length) {
+				self.loadLive2DCompleted = true;//全て読み終わった
+			}
+		};
+		self.loadedImages[tno].onerror = function() {
+			console.error("Failed to load image : " + self.modelDef.textures[tno]);
+		};
+	};
+
+
+	for(var i = 0; i < self.modelDef.textures.length; i++){
+		imageLoader(i);
+	}
+
+	// モーションのロード
+	var loadCount2 = 0;
+	var motionLoader = function ( tno ){// 即時関数で i の値を tno に固定する（onerror用)
+		Simple.loadBytes(self.modelDef.motions[tno], function(buf){
+			// ArrayBufferに変換
+			//var arrayBuf = this.toArrayBuffer(mocbuf);
+
+			self.motions.push(Live2DMotion.loadMotion(buf));
+			if((++loadCount2) === self.modelDef.motions.length) {
+				self.loadLive2DCompleted2 = true;//全て読み終わった
+			}
+
+		});
+	};
+
+	for(i = 0; i < self.modelDef.motions.length; i++){
+		motionLoader(i);
+	}
+
+	// モーションマネジャーのインスタンス化
+	self.motionMgr = new L2DMotionManager();
+
+	// ポーズのロード(json内のposeがあるかチェック)
+	if(self.modelDef.pose){
+		Simple.loadBytes(self.modelDef.pose, function(buf){
+			// ポースクラスのロード
+			self.pose = L2DPose.load(buf);
+		});
+	}
+
 
 	// コンテキストを失ったとき
 	self.canvas.addEventListener("webglcontextlost", function(e) {
@@ -73,11 +168,30 @@ var Simple = function(canvas) {
 	// コンテキストが復元されたとき
 	self.canvas.addEventListener("webglcontextrestored" , function(e){
 		console.error("webglcontext restored");
-		self.startLoop(self.canvas);
+		self.startLoop();
 	}, false);
 
-	// Init and start Loop
-	self.startLoop(self.canvas);
+	// マウスクリックイベント
+	self.canvas.addEventListener("click", function(e){
+		self.motionchange = true;
+		if(self.motions.length - 1  > self.motionnm){
+			self.motionnm++;
+		}else{
+			self.motionnm = 0;
+		}
+	}, false);
+
+	//------------ 描画ループ ------------
+	self.tick();
+};
+
+//------------ 描画ループ ------------
+Simple.prototype.tick = function() {
+	var self = this;
+
+	self.draw(self.gl, self); // 1回分描画
+
+	self.requestID = window.requestAnimationFrame(self.tick.bind(self));// 一定時間後に自身を呼び出す
 };
 
 Simple.prototype.stopLoop = function() {
@@ -90,115 +204,6 @@ Simple.prototype.stopLoop = function() {
 };
 
 
-
-/*
-* WebGLコンテキストを取得・初期化。
-* Live2Dの初期化、描画ループを開始。
-*/
-Simple.prototype.startLoop = function(canvas/*HTML5 canvasオブジェクト*/)
-{
-	//------------ WebGLの初期化 ------------
-
-	// WebGLのコンテキストを取得する
-	var para = {
-		premultipliedAlpha : true,
-	//        alpha : false
-	};
-	var gl = this.getWebGLContext(canvas, para);
-	if (!gl) {
-		console.error("Failed to create WebGL context.");
-		return;
-	}
-
-	// 描画エリアを白でクリア
-	gl.clearColor( 0.0 , 0.0 , 0.0 , 0.0 );
-
-	// コールバック対策
-	var that = this;
-
-	var motionbuf, arrayBuf;
-
-	// PlatformManager を設定
-	Live2DFramework.setPlatformManager(new PlatformManager());
-
-	//------------ Live2Dの初期化 ------------
-	// mocファイルからLive2Dモデルのインスタンスを生成
-	Simple.loadBytes(that.modelDef.model, function(buf){
-		// ArrayBufferに変換
-		//var arrayBuf = this.toArrayBuffer(mocbuf);
-
-		that.live2DModel = Live2DModelWebGL.loadModel(buf);
-	});
-
-	// テクスチャの読み込み
-	var loadCount = 0;
-	var imageLoader = function ( tno ){// 即時関数で i の値を tno に固定する（onerror用)
-		that.loadedImages[tno] = new Image();
-		that.loadedImages[tno].src = that.modelDef.textures[tno];
-		that.loadedImages[tno].onload = function(){
-			if((++loadCount) === that.modelDef.textures.length) {
-				that.loadLive2DCompleted = true;//全て読み終わった
-			}
-		};
-		that.loadedImages[tno].onerror = function() {
-			console.error("Failed to load image : " + that.modelDef.textures[tno]);
-		};
-	};
-
-
-	for(var i = 0; i < that.modelDef.textures.length; i++){
-		imageLoader(i);
-	}
-
-	// モーションのロード
-	var loadCount2 = 0;
-	var motionLoader = function ( tno ){// 即時関数で i の値を tno に固定する（onerror用)
-		Simple.loadBytes(that.modelDef.motions[tno], function(buf){
-			// ArrayBufferに変換
-			//var arrayBuf = this.toArrayBuffer(mocbuf);
-
-			that.motions.push(Live2DMotion.loadMotion(buf));
-			if((++loadCount2) === that.modelDef.motions.length) {
-				that.loadLive2DCompleted2 = true;//全て読み終わった
-			}
-
-		});
-	};
-
-	for(i = 0; i < that.modelDef.motions.length; i++){
-		motionLoader(i);
-	}
-
-	// モーションマネジャーのインスタンス化
-	that.motionMgr = new L2DMotionManager();
-
-	// ポーズのロード(json内のposeがあるかチェック)
-	if(that.modelDef.pose){
-		Simple.loadBytes(that.modelDef.pose, function(buf){
-			// ポースクラスのロード
-			that.pose = L2DPose.load(buf);
-		});
-	}
-
-
-	// マウスクリックイベント
-	that.canvas.addEventListener("click", function(e){
-		that.motionchange = true;
-		if(that.motions.length - 1  > that.motionnm){
-			that.motionnm++;
-		}else{
-			that.motionnm = 0;
-		}
-	}, false);
-
-	//------------ 描画ループ ------------
-
-	(function tick() {
-		that.draw(gl, that); // 1回分描画
-
-		that.requestID = window.requestAnimationFrame( tick , that.canvas );// 一定時間後に自身を呼び出す
-	})();
-};
 
 
 Simple.prototype.draw = function(gl/*WebGLコンテキスト*/, that)
