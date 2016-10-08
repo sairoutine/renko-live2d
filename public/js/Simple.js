@@ -20,6 +20,12 @@ var MODEL_DEFINE = {
 	//"pose": MODEL_PATH + "haru.pose.json",
 };
 
+var LOADING_STATE = 1;
+var INIT_STATE    = 2;
+var DRAWING_STATE = 3;
+
+
+
 // 画面ロード時
 window.onload = function(){
 	var canvas = document.getElementById("glcanvas");
@@ -47,8 +53,8 @@ var Simple = function(canvas/*HTML5 canvasオブジェクト*/) {
 	self.loadLive2DModelCompleted = false;
 	// モーションのロードが完了したら true
 	self.loadLive2DMotionCompleted = false;
-	// モデルの初期化が完了したら true
-	self.initLive2DCompleted = false;
+	// アプリの状態
+	self.state = LOADING_STATE;
 	// WebGL Image型オブジェクトの配列
 	self.loadedImages = [];
 	// モーション
@@ -184,7 +190,7 @@ Simple.prototype.setContextRecover = function() {
 Simple.prototype.tick = function() {
 	var self = this;
 
-	self.draw(); // 1回分描画
+	self.run(); // 1回分描画
 
 	self.requestID = window.requestAnimationFrame(self.tick.bind(self));// 一定時間後に自身を呼び出す
 };
@@ -193,76 +199,78 @@ Simple.prototype.stopLoop = function() {
 	var self = this;
 	self.loadLive2DModelCompleted = false;
 	self.loadLive2DMotionCompleted = false;
-	self.initLive2DCompleted = false;
 
 	window.cancelAnimationFrame(self.requestID); //アニメーションを停止
 };
 
+Simple.prototype.changeState = function(state) {
+	this.state = state;
+};
 
-
-
-Simple.prototype.draw = function() {
+Simple.prototype.run = function() {
 	var self = this;
 
 	// Canvasをクリアする
 	self.gl.clear(self.gl.COLOR_BUFFER_BIT);
 
-	// Live2D初期化
-	if( ! self.live2DModel || ! self.loadLive2DModelCompleted || ! self.loadLive2DMotionCompleted)
-		return; //ロードが完了していないので何もしないで返る
+	switch (self.state) {
+		case LOADING_STATE: // Live2D初期化
+			if(self.live2DModel && self.loadLive2DModelCompleted && self.loadLive2DMotionCompleted) {
+				self.changeState(INIT_STATE);
+			}
+			break;
+		case INIT_STATE: // ロード完了後に初期化する
+			// 画像からWebGLテクスチャを生成し、モデルに登録
+			for( var i = 0; i < self.loadedImages.length; i++ ){
+				//Image型オブジェクトからテクスチャを生成
+				var texName = self.createTexture(self.gl, self.loadedImages[i]);
+				self.live2DModel.setTexture(i, texName); //モデルにテクスチャをセット
+			}
 
-	// ロード完了後に初回のみ初期化する
-	if( ! self.initLive2DCompleted ){
-		self.initLive2DCompleted = true;
+			// テクスチャの元画像の参照をクリア
+			self.loadedImages = null;
 
-		// 画像からWebGLテクスチャを生成し、モデルに登録
-		for( var i = 0; i < self.loadedImages.length; i++ ){
-			//Image型オブジェクトからテクスチャを生成
-			var texName = self.createTexture(self.gl, self.loadedImages[i]);
-			self.live2DModel.setTexture(i, texName); //モデルにテクスチャをセット
-		}
+			// OpenGLのコンテキストをセット
+			self.live2DModel.setGL(self.gl);
 
-		// テクスチャの元画像の参照をクリア
-		self.loadedImages = null;
-		// OpenGLのコンテキストをセット
-		self.live2DModel.setGL(self.gl);
+			// 表示位置を指定するための行列を定義する
+			var w = self.live2DModel.getCanvasWidth();
+			var h = self.live2DModel.getCanvasHeight();
+			var s = 2.0 / h;
+			var p = w / h;
 
-		// 表示位置を指定するための行列を定義する
-		var w = self.live2DModel.getCanvasWidth();
-		var h = self.live2DModel.getCanvasHeight();
-		var s = 2.0 / h;
-		var p = w / h;
+			var matrix4x4 = [
+			 s, 0, 0, 0,
+			 0,-s, 0, 0,
+			 0, 0, 1, 0,
+			-1, 1, 0, 1 // 左から「x位置, y位置, 0, スケール」
+			];
+			self.live2DModel.setMatrix(matrix4x4);
 
-		var matrix4x4 = [
-		 s, 0, 0, 0,
-		 0,-s, 0, 0,
-		 0, 0, 1, 0,
-		-1, 1, 0, 1 // 左から「x位置, y位置, 0, スケール」
-		];
-		self.live2DModel.setMatrix(matrix4x4);
+			self.changeState(DRAWING_STATE);
+			break;
+		case DRAWING_STATE: // モーションが終了していたら再生する
+			if(self.motionMgr.isFinished() || self.motionchange === true ){
+				self.motionMgr.startMotion(self.motions[self.motionnm], 0);
+				self.motionchange = false;
+			}
+			// モーション指定されていない場合は何も再生しない
+			if(self.motionnm !== null){
+				// モーションパラメータの更新
+				self.motionMgr.updateParam(self.live2DModel);
+			}
+
+			// ポーズパラメータの更新
+			if(self.pose !== null) {
+				self.pose.updateParam(self.live2DModel);
+			}
+
+			// Live2Dモデルを更新して描画
+			self.live2DModel.update(); // 現在のパラメータに合わせて頂点等を計算
+			self.live2DModel.draw();	// 描画
+
+			break;
 	}
-
-
-	// モーションが終了していたら再生する
-	if(self.motionMgr.isFinished() || self.motionchange === true ){
-		self.motionMgr.startMotion(self.motions[self.motionnm], 0);
-		self.motionchange = false;
-		console.info("motion:" + self.motionnm);
-	}
-	// モーション指定されていない場合は何も再生しない
-	if(self.motionnm !== null){
-		// モーションパラメータの更新
-		self.motionMgr.updateParam(self.live2DModel);
-	}
-
-	// ポーズパラメータの更新
-	if(self.pose !== null) {
-		self.pose.updateParam(self.live2DModel);
-	}
-
-	// Live2Dモデルを更新して描画
-	self.live2DModel.update(); // 現在のパラメータに合わせて頂点等を計算
-	self.live2DModel.draw();	// 描画
 };
 
 /*
