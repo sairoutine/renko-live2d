@@ -4,23 +4,21 @@
 var HEIGHT = 512;
 var WIDTH  = 512;
 // Live2Dモデル定義
-var MODEL_PATH = "assets/haru/";
-var IMAGE_PATH = "assets/haru/";
+var MODEL_PATH = "assets/model/";
+var IMAGE_PATH = "assets/model/";
 var MODEL_DEFINE = {
 	"type":"Live2D Model Setting",
 	"name":"haru",
-	"model": MODEL_PATH + "haru.moc",
+	"model": MODEL_PATH + "model.moc",
 	"textures":[
-		IMAGE_PATH + "haru.1024/texture_00.png",
-		IMAGE_PATH + "haru.1024/texture_01.png",
-		IMAGE_PATH + "haru.1024/texture_02.png",
+		IMAGE_PATH + "model.2048/texture_00.png",
 	],
 	"motions":[
 		MODEL_PATH + "motions/haru_idle_01.mtn",
 		MODEL_PATH + "motions/haru_m_01.mtn",
 		MODEL_PATH + "motions/haru_normal_01.mtn",
 	],
-	"pose": MODEL_PATH + "haru.pose.json",
+	//"pose": MODEL_PATH + "haru.pose.json",
 };
 
 // 画面ロード時
