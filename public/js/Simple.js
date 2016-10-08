@@ -1,14 +1,12 @@
 /* global Live2D, Live2DModelWebGL, Live2DMotion, L2DMotionManager, L2DPose, Live2DFramework, PlatformManager */
 'use strict';
-// Canvasサイズ
-var HEIGHT = 512;
-var WIDTH  = 512;
+
 // Live2Dモデル定義
 var MODEL_PATH = "assets/model/";
 var IMAGE_PATH = "assets/model/";
 var MODEL_DEFINE = {
 	"type":"Live2D Model Setting",
-	"name":"haru",
+	"name":"renko",
 	"model": MODEL_PATH + "model.moc",
 	"textures":[
 		IMAGE_PATH + "model.2048/texture_00.png",
@@ -24,14 +22,20 @@ var MODEL_DEFINE = {
 
 // 画面ロード時
 window.onload = function(){
-	var glCanvas = new Simple();
+	var canvas = document.getElementById("glcanvas");
+
+	// Live2Dの初期化
+	Live2D.init();
+
+	var glCanvas = new Simple(canvas);
 };
 
 /*
  * メイン処理
  */
-var Simple = function() {
+var Simple = function(canvas) {
 	var self = this;
+
 	// Live2Dモデルのインスタンス
 	self.live2DModel = null;
 	// アニメーションを停止するためのID
@@ -56,13 +60,8 @@ var Simple = function() {
 	self.modelDef = MODEL_DEFINE;
 	// ポーズ
 	self.pose = null;
-	// Live2Dの初期化
-	Live2D.init();
-
 	// canvasオブジェクトを取得
-	self.canvas = document.getElementById("glcanvas");
-	self.canvas.width = WIDTH;
-	self.canvas.height = HEIGHT;
+	self.canvas = canvas;
 
 	// コンテキストを失ったとき
 	self.canvas.addEventListener("webglcontextlost", function(e) {
@@ -71,10 +70,7 @@ var Simple = function() {
 		self.loadLive2DCompleted2 = false;
 		self.initLive2DCompleted = false;
 
-		var cancelAnimationFrame =
-			window.cancelAnimationFrame ||
-			window.mozCancelAnimationFrame;
-		cancelAnimationFrame(self.requestID); //アニメーションを停止
+		window.cancelAnimationFrame(self.requestID); //アニメーションを停止
 
 		e.preventDefault();
 	}, false);
@@ -195,12 +191,7 @@ Simple.prototype.initLoop = function(canvas/*HTML5 canvasオブジェクト*/)
 	(function tick() {
 		that.draw(gl, that); // 1回分描画
 
-		var requestAnimationFrame =
-			window.requestAnimationFrame ||
-			window.mozRequestAnimationFrame ||
-			window.webkitRequestAnimationFrame ||
-			window.msRequestAnimationFrame;
-		that.requestID = requestAnimationFrame( tick , that.canvas );// 一定時間後に自身を呼び出す
+		that.requestID = window.requestAnimationFrame( tick , that.canvas );// 一定時間後に自身を呼び出す
 	})();
 };
 

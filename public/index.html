@@ -8,6 +8,9 @@
 canvas{
 	-webkit-app-region: drag;  /* electron ドラッグ移動用 */
 	margin:0; padding:0;
+
+	position:absolute;
+	left: 0px; top: 0px;
 }
 body {
 	margin:0;
@@ -19,7 +22,7 @@ body {
 </head>
 <body>
 
-<canvas id="glcanvas" style="position:absolute;left0px;top0px;"></canvas>
+	<canvas id="glcanvas" width="512" height="512"></canvas>
 
 <!-- Live2D Library -->
 <script src="http://simplecode.jp/Live2D_DragDrop/lib/live2d.min.js"></script>
