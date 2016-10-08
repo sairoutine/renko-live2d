@@ -338,20 +338,10 @@ Simple.loadBytes = function(path , callback) {
 			callback( request.response );
 			break;
 		default:
-			Simple.myerror( "Failed to load (" + request.status + ") : " + path );
+			console.error( "Failed to load (" + request.status + ") : " + path );
 			break;
 		}
 	};
 
 	request.send(null);
-};
-
-Simple.prototype.toArrayBuffer = function(buffer)
-{
-	var ab = new ArrayBuffer(buffer.length);
-	var view = new Uint8Array(ab);
-	for(var i = 0; i < buffer.length; ++i){
-		view[i] = buffer[i];
-	}
-	return ab;
 };
