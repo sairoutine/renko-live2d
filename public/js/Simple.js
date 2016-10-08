@@ -36,7 +36,7 @@ window.onload = function(){
 /*
  * メイン処理
  */
-var Simple = function(canvas) {
+var Simple = function(canvas/*HTML5 canvasオブジェクト*/) {
 	var self = this;
 
 	// Live2Dモデルのインスタンス
@@ -79,10 +79,7 @@ Simple.prototype.startLoop = function() {
 	//------------ WebGLの初期化 ------------
 
 	// WebGLのコンテキストを取得する
-	self.gl = self.getWebGLContext(self.canvas, {
-		premultipliedAlpha : true,
-		//alpha : false
-	});
+	self.gl = self.getWebGLContext();
 
 	if (!self.gl) {
 		console.error("Failed to create WebGL context.");
@@ -272,8 +269,8 @@ Simple.prototype.draw = function(gl/*WebGLコンテキスト*/, that)
 /*
 * WebGLのコンテキストを取得する
 */
-Simple.prototype.getWebGLContext = function(canvas/*HTML5 canvasオブジェクト*/)
-{
+Simple.prototype.getWebGLContext = function() {
+	var self = this;
 	var NAMES = [ "webgl" , "experimental-webgl" , "webkit-3d" , "moz-webgl"];
 
 	var param = {
@@ -283,7 +280,7 @@ Simple.prototype.getWebGLContext = function(canvas/*HTML5 canvasオブジェク�
 
 	for( var i = 0; i < NAMES.length; i++ ){
 		try{
-			var ctx = canvas.getContext( NAMES[i], param );
+			var ctx = self.canvas.getContext( NAMES[i], param );
 			if( ctx ) return ctx;
 		}
 		catch(e){}
