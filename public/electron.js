@@ -8,13 +8,13 @@ let mainWindow;
 
 function createWindow () {
 	mainWindow = new BrowserWindow({
-	  width: 532, 
-	  height: 532,
-	  "transparent": true,    // ウィンドウの背景を透過
-	  "frame": false,     // 枠の無いウィンドウ
-	  "resizable": false,  // ウィンドウのリサイズを禁止
-	  "hasShadow": false,
-	  alwaysOnTop: true,
+	  "width":       512,
+	  "height":      512,
+	  "transparent": true,  // ウィンドウの背景を透過
+	  "frame":       false, // 枠の無いウィンドウ
+	  "resizable":   false, // ウィンドウのリサイズを禁止
+	  "hasShadow":   false, // 残像が残らないようにする(Mac only option)
+	  "alwaysOnTop": true,  // 常に最前面
 	});
 	mainWindow.loadURL(`file://${__dirname}/index.html`);
 
