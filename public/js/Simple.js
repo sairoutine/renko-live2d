@@ -199,6 +199,7 @@ Simple.prototype.stopLoop = function() {
 	var self = this;
 	self.loadLive2DModelCompleted = false;
 	self.loadLive2DMotionCompleted = false;
+	self.changeState(LOADING_STATE);
 
 	window.cancelAnimationFrame(self.requestID); //アニメーションを停止
 };
