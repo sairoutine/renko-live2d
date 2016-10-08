@@ -59,8 +59,6 @@ var Simple = function(canvas) {
 	self.motionnm = 0;
 	// モーションチェンジ
 	self.motionchange = false;
-	// Live2D モデル設定
-	self.modelDef = MODEL_DEFINE;
 	// ポーズ
 	self.pose = null;
 	// canvasオブジェクトを取得
@@ -81,7 +79,7 @@ Simple.prototype.startLoop = function() {
 	//------------ WebGLの初期化 ------------
 
 	// WebGLのコンテキストを取得する
-	self.gl = this.getWebGLContext(self.canvas, {
+	self.gl = self.getWebGLContext(self.canvas, {
 		premultipliedAlpha : true,
 		//alpha : false
 	});
@@ -94,17 +92,12 @@ Simple.prototype.startLoop = function() {
 	// 描画エリアを白でクリア
 	self.gl.clearColor( 0.0 , 0.0 , 0.0 , 0.0 );
 
-	var motionbuf, arrayBuf;
-
 	// PlatformManager を設定
 	Live2DFramework.setPlatformManager(new PlatformManager());
 
 	//------------ Live2Dの初期化 ------------
 	// mocファイルからLive2Dモデルのインスタンスを生成
-	Simple.loadBytes(self.modelDef.model, function(buf){
-		// ArrayBufferに変換
-		//var arrayBuf = this.toArrayBuffer(mocbuf);
-
+	Simple.loadBytes(MODEL_DEFINE.model, function(buf){
 		self.live2DModel = Live2DModelWebGL.loadModel(buf);
 	});
 
@@ -112,38 +105,36 @@ Simple.prototype.startLoop = function() {
 	var loadCount = 0;
 	var imageLoader = function ( tno ){// 即時関数で i の値を tno に固定する（onerror用)
 		self.loadedImages[tno] = new Image();
-		self.loadedImages[tno].src = self.modelDef.textures[tno];
+		self.loadedImages[tno].src = MODEL_DEFINE.textures[tno];
 		self.loadedImages[tno].onload = function(){
-			if((++loadCount) === self.modelDef.textures.length) {
+			if((++loadCount) === MODEL_DEFINE.textures.length) {
 				self.loadLive2DCompleted = true;//全て読み終わった
 			}
 		};
 		self.loadedImages[tno].onerror = function() {
-			console.error("Failed to load image : " + self.modelDef.textures[tno]);
+			console.error("Failed to load image : " + MODEL_DEFINE.textures[tno]);
 		};
 	};
 
 
-	for(var i = 0; i < self.modelDef.textures.length; i++){
+	for(var i = 0; i < MODEL_DEFINE.textures.length; i++){
 		imageLoader(i);
 	}
 
 	// モーションのロード
 	var loadCount2 = 0;
 	var motionLoader = function ( tno ){// 即時関数で i の値を tno に固定する（onerror用)
-		Simple.loadBytes(self.modelDef.motions[tno], function(buf){
-			// ArrayBufferに変換
-			//var arrayBuf = this.toArrayBuffer(mocbuf);
+		Simple.loadBytes(MODEL_DEFINE.motions[tno], function(buf){
 
 			self.motions.push(Live2DMotion.loadMotion(buf));
-			if((++loadCount2) === self.modelDef.motions.length) {
+			if((++loadCount2) === MODEL_DEFINE.motions.length) {
 				self.loadLive2DCompleted2 = true;//全て読み終わった
 			}
 
 		});
 	};
 
-	for(i = 0; i < self.modelDef.motions.length; i++){
+	for(i = 0; i < MODEL_DEFINE.motions.length; i++){
 		motionLoader(i);
 	}
 
@@ -151,8 +142,8 @@ Simple.prototype.startLoop = function() {
 	self.motionMgr = new L2DMotionManager();
 
 	// ポーズのロード(json内のposeがあるかチェック)
-	if(self.modelDef.pose){
-		Simple.loadBytes(self.modelDef.pose, function(buf){
+	if(MODEL_DEFINE.pose){
+		Simple.loadBytes(MODEL_DEFINE.pose, function(buf){
 			// ポースクラスのロード
 			self.pose = L2DPose.load(buf);
 		});
