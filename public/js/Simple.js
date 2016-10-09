@@ -12,8 +12,9 @@ var MODEL_DEFINE = {
 		IMAGE_PATH + "model.2048/texture_00.png",
 	],
 	"motions":[
-		MODEL_PATH + "motions/idle_01.mtn",
+		// 初期モーション
 		MODEL_PATH + "motions/haru_idle_01.mtn",
+		MODEL_PATH + "motions/idle_01.mtn", 
 		MODEL_PATH + "motions/haru_m_01.mtn",
 		MODEL_PATH + "motions/haru_normal_01.mtn",
 	],
@@ -28,6 +29,11 @@ var DRAWING_STATE = 3;
 
 // 画面ロード時
 window.onload = function(){
+	if (!navigator.onLine) {
+		window.alert('インターネット接続が必要です');
+		return;
+	}
+
 	var canvas = document.getElementById("glcanvas");
 
 	// Live2Dの初期化
@@ -158,11 +164,8 @@ Simple.prototype.startLoop = function() {
 	// マウスクリックイベント
 	self.canvas.addEventListener("click", function(e){
 		self.motionchange = true;
-		if(self.motions.length - 1  > self.motionnm){
-			self.motionnm++;
-		}else{
-			self.motionnm = 0;
-		}
+
+		self.motionnm = Math.floor(Math.random() * (self.motions.length - 1)) + 1; // 配列 0 はチョイスしない
 	}, false);
 
 	//------------ 描画ループ ------------
@@ -250,11 +253,19 @@ Simple.prototype.run = function() {
 
 			self.changeState(DRAWING_STATE);
 			break;
-		case DRAWING_STATE: // モーションが終了していたら再生する
-			if(self.motionMgr.isFinished() || self.motionchange === true ){
+		case DRAWING_STATE:
+			// モーションが終了していたら初期モーションを再生する
+			if(self.motionMgr.isFinished()) {
+				self.motionnm = 0;
+				self.motionchange = true;
+			}
+
+			// モーションが変更していたら再生する
+			if(self.motionchange === true ) {
 				self.motionMgr.startMotion(self.motions[self.motionnm], 0);
 				self.motionchange = false;
 			}
+
 			// モーション指定されていない場合は何も再生しない
 			if(self.motionnm !== null){
 				// モーションパラメータの更新
