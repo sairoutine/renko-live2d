@@ -3,6 +3,8 @@
 
 // Live2Dモデル定義
 var MODEL_PATH = "assets/model/";
+var MOTION_PATH = "http://www.sai-chan.com/live2d/motions/";
+//var MOTION_PATH = "assets/model/motions/";
 var IMAGE_PATH = "assets/model/";
 var MODEL_DEFINE = {
 	"type":"Live2D Model Setting",
@@ -13,10 +15,12 @@ var MODEL_DEFINE = {
 	],
 	"motions":[
 		// 初期モーション
-		MODEL_PATH + "motions/haru_idle_01.mtn",
-		MODEL_PATH + "motions/idle_01.mtn", 
-		MODEL_PATH + "motions/haru_m_01.mtn",
-		MODEL_PATH + "motions/haru_normal_01.mtn",
+		MOTION_PATH + "haru_idle_02.mtn",
+		MOTION_PATH + "haru_m_02.mtn",
+		MOTION_PATH + "haru_m_05.mtn",
+		MOTION_PATH + "haru_normal_01.mtn",
+		MOTION_PATH + "haru_normal_06.mtn",
+		MOTION_PATH + "haru_normal_10.mtn",
 	],
 	//"pose": MODEL_PATH + "haru.pose.json",
 };
