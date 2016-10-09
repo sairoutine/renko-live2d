@@ -150,7 +150,7 @@ Simple.prototype.startLoop = function() {
 	var motionLoader = function ( tno ){// 即時関数で i の値を tno に固定する（onerror用)
 		Simple.loadBytes(MODEL_DEFINE.motions[tno], function(buf){
 
-			self.motions.push(Live2DMotion.loadMotion(buf));
+			self.motions[tno] = Live2DMotion.loadMotion(buf);
 			if((++loadCount2) === MODEL_DEFINE.motions.length) {
 				self.loadLive2DMotionCompleted = true;//全て読み終わった
 			}
